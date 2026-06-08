@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state/analyzer_provider.dart';
-import '../theme.dart';
 import 'search_screen.dart';
 import 'dashboard_screen.dart';
 import 'trend_screen.dart';
@@ -44,105 +43,32 @@ class _NavigationShellState extends State<NavigationShell> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppTheme.surface,
-          border: Border(
-            top: BorderSide(color: AppTheme.borderSubdued, width: 1),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.search_outlined),
+            selectedIcon: Icon(Icons.search_rounded),
+            label: 'Explore',
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavTab(
-                  icon: Icons.search_rounded,
-                  label: 'Explore',
-                  isActive: _currentIndex == 0,
-                  onTap: () => setState(() => _currentIndex = 0),
-                ),
-                _NavTab(
-                  icon: Icons.dataset_outlined,
-                  label: 'Summary',
-                  isActive: _currentIndex == 1,
-                  showDot: hasResults && _currentIndex != 1,
-                  onTap: () => setState(() => _currentIndex = 1),
-                ),
-                _NavTab(
-                  icon: Icons.query_stats_rounded,
-                  label: 'Analytics',
-                  isActive: _currentIndex == 2,
-                  showDot: hasResults && _currentIndex != 2,
-                  onTap: () => setState(() => _currentIndex = 2),
-                ),
-              ],
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: hasResults && _currentIndex != 1,
+              child: const Icon(Icons.dataset_outlined),
             ),
+            selectedIcon: const Icon(Icons.dataset_rounded),
+            label: 'Summary',
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavTab extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final bool showDot;
-  final VoidCallback onTap;
-
-  const _NavTab({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    this.showDot = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? AppTheme.dashboardBlue : AppTheme.textDisabled;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, size: 22, color: color),
-                if (showDot)
-                  Positioned(
-                    right: -4,
-                    top: -2,
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.dashboardBlue,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: hasResults && _currentIndex != 2,
+              child: const Icon(Icons.query_stats_outlined),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: color,
-              ),
-            ),
-          ],
-        ),
+            selectedIcon: const Icon(Icons.query_stats_rounded),
+            label: 'Analytics',
+          ),
+        ],
       ),
     );
   }

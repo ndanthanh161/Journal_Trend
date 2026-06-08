@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/work_model.dart';
 import '../state/analyzer_provider.dart';
-import '../theme.dart';
 import '../widgets/metric_tag.dart';
+import '../widgets/theme_toggle_button.dart';
 import 'detail_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -17,33 +17,40 @@ class DashboardScreen extends StatelessWidget {
     final hasData = provider.works.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Analytics Dashboard')),
-      body: !hasData ? _buildEmptyState(context) : _buildDashboard(provider),
+      appBar: AppBar(
+        title: const Text('Analytics Dashboard'),
+        actions: const [
+          ThemeToggleButton(),
+          SizedBox(width: 8),
+        ],
+      ),
+      body: !hasData ? _buildEmptyState(context) : _buildDashboard(context, provider),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.dataset_outlined, color: AppTheme.textDisabled, size: 48),
+            Icon(Icons.dataset_outlined, color: colorScheme.onSurfaceVariant.withOpacity(0.6), size: 48),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'No Dataset Available',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Search for a topic to generate a research summary.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+              style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
@@ -57,9 +64,10 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboard(AnalyzerProvider provider) {
+  Widget _buildDashboard(BuildContext context, AnalyzerProvider provider) {
     final influentialPaper = provider.mostInfluentialPaper;
     final topInfluentialPapers = provider.topInfluentialPapers.take(5).toList();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -70,7 +78,7 @@ class DashboardScreen extends StatelessWidget {
           _SnapshotCard(provider: provider),
           const SizedBox(height: 20),
           const _SectionTitle(title: 'Key Performance Indicators'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -78,21 +86,21 @@ class DashboardScreen extends StatelessWidget {
                   label: 'Publications',
                   value: provider.totalPublications.toString(),
                   icon: Icons.article_outlined,
-                  color: AppTheme.brandGreen,
+                  color: colorScheme.secondary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
                   label: 'Avg. citations',
                   value: provider.averageCitationCount.toStringAsFixed(1),
                   icon: Icons.format_quote_rounded,
-                  color: AppTheme.interactiveBlue,
+                  color: colorScheme.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -100,16 +108,16 @@ class DashboardScreen extends StatelessWidget {
                   label: 'Peak year',
                   value: provider.mostActivePublicationYear.toString(),
                   icon: Icons.event_rounded,
-                  color: AppTheme.indigo,
+                  color: colorScheme.tertiary,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: _StatCard(
                   label: 'Top journal',
                   value: provider.topJournal,
                   icon: Icons.menu_book_outlined,
-                  color: AppTheme.warning,
+                  color: const Color(0xFFF59E0B),
                   compact: true,
                 ),
               ),
@@ -117,23 +125,23 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const _SectionTitle(title: 'Most Active Researcher'),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _InfoCard(
             icon: Icons.person_search_outlined,
             label: 'Author',
             value: provider.topAuthor,
-            color: AppTheme.interactiveBlue,
+            color: colorScheme.primary,
           ),
           if (influentialPaper != null) ...[
             const SizedBox(height: 20),
             const _SectionTitle(title: 'Most Influential Publication'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _InfluentialPaperCard(work: influentialPaper),
           ],
           if (topInfluentialPapers.isNotEmpty) ...[
             const SizedBox(height: 20),
             const _SectionTitle(title: 'Top Influential Papers'),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             _InfluentialPaperRankedList(works: topInfluentialPapers),
           ],
         ],
@@ -149,13 +157,38 @@ class _SnapshotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.dashboardBlue.withOpacity(0.35)),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+                  colorScheme.surface,
+                  colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                ]
+              : [
+                  colorScheme.surface,
+                  colorScheme.primary.withOpacity(0.04),
+                ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(isDark ? 0.35 : 0.2),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(isDark ? 0.12 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,12 +197,12 @@ class _SnapshotCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: AppTheme.blueSoft,
+              color: colorScheme.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.analytics_outlined,
-              color: AppTheme.dashboardBlue,
+              color: colorScheme.primary,
               size: 20,
             ),
           ),
@@ -178,20 +211,21 @@ class _SnapshotCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Live Dataset Snapshot',
                   style: TextStyle(
-                    color: AppTheme.dashboardBlue,
+                    color: colorScheme.primary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   provider.currentQuery,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 17,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     height: 1.3,
                   ),
@@ -199,20 +233,20 @@ class _SnapshotCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   '${provider.allWorks.length} records loaded from ${provider.totalCount} matching publications',
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 12,
                   ),
                 ),
                 if (provider.isBackgroundLoading) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(2),
-                    child: const LinearProgressIndicator(
+                    child: LinearProgressIndicator(
                       minHeight: 4,
-                      backgroundColor: AppTheme.surfaceMuted,
+                      backgroundColor: colorScheme.surfaceContainerHighest,
                       valueColor:
-                          AlwaysStoppedAnimation<Color>(AppTheme.dashboardBlue),
+                          AlwaysStoppedAnimation<Color>(colorScheme.primary),
                     ),
                   ),
                 ],
@@ -240,23 +274,28 @@ class _InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSubdued),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.35 : 0.18),
+        ),
       ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: color.withOpacity(0.08),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 18),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -265,20 +304,21 @@ class _InfoCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 1),
+                const SizedBox(height: 2),
                 Text(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -297,23 +337,33 @@ class _InfluentialPaperCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppTheme.surface,
-      borderRadius: BorderRadius.circular(8),
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: colorScheme.outline.withOpacity(isDark ? 0.35 : 0.18),
+        ),
+      ),
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DetailScreen(work: work)),
+            PageRouteBuilder(
+              transitionDuration: const Duration(milliseconds: 280),
+              pageBuilder: (_, _, _) => DetailScreen(work: work),
+              transitionsBuilder: (_, anim, _, child) =>
+                  FadeTransition(opacity: anim, child: child),
+            ),
           );
         },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.borderSubdued),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -321,23 +371,23 @@ class _InfluentialPaperCard extends StatelessWidget {
                 children: [
                   CountPill(
                     label: '${work.citedByCount} citations',
-                    color: AppTheme.warning,
+                    color: colorScheme.error,
                   ),
                   const Spacer(),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: AppTheme.textDisabled, size: 20),
+                  Icon(Icons.chevron_right_rounded,
+                      color: colorScheme.onSurfaceVariant, size: 20),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 work.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
-                  height: 1.4,
+                  color: colorScheme.onSurface,
+                  height: 1.45,
                 ),
               ),
               const SizedBox(height: 6),
@@ -345,8 +395,8 @@ class _InfluentialPaperCard extends StatelessWidget {
                 work.journalName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -365,12 +415,17 @@ class _InfluentialPaperRankedList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSubdued),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.35 : 0.18),
+        ),
       ),
       child: Column(
         children: works.asMap().entries.map((indexed) {
@@ -382,8 +437,11 @@ class _InfluentialPaperRankedList extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => DetailScreen(work: work),
+                PageRouteBuilder(
+                  transitionDuration: const Duration(milliseconds: 280),
+                  pageBuilder: (_, _, _) => DetailScreen(work: work),
+                  transitionsBuilder: (_, anim, _, child) =>
+                      FadeTransition(opacity: anim, child: child),
                 ),
               );
             },
@@ -398,8 +456,8 @@ class _InfluentialPaperRankedList extends StatelessWidget {
                       '${index + 1}',
                       style: TextStyle(
                         color: index == 0
-                            ? AppTheme.warning
-                            : AppTheme.textDisabled,
+                            ? colorScheme.error
+                            : colorScheme.onSurfaceVariant.withOpacity(0.5),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
@@ -414,8 +472,8 @@ class _InfluentialPaperRankedList extends StatelessWidget {
                           work.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppTheme.textPrimary,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             height: 1.35,
@@ -426,8 +484,8 @@ class _InfluentialPaperRankedList extends StatelessWidget {
                           '${work.publicationYear} - ${work.journalName}',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: AppTheme.textSecondary,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -437,7 +495,7 @@ class _InfluentialPaperRankedList extends StatelessWidget {
                   const SizedBox(width: 8),
                   CountPill(
                     label: '${work.citedByCount} citations',
-                    color: AppTheme.warning,
+                    color: colorScheme.error,
                   ),
                 ],
               ),
@@ -455,13 +513,28 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-        color: AppTheme.textPrimary,
-      ),
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Container(
+          width: 4,
+          height: 16,
+          decoration: BoxDecoration(
+            color: colorScheme.primary,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: colorScheme.onSurface,
+            letterSpacing: 0.25,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -483,55 +556,69 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppTheme.borderSubdued),
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withOpacity(isDark ? 0.3 : 0.15),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(isDark ? 0.08 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
             height: 4,
             decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(99),
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.4)],
+              ),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Icon(icon, color: color, size: 18),
+              Icon(icon, color: color, size: 20),
               const Spacer(),
               Icon(
                 Icons.trending_up_rounded,
-                color: color.withOpacity(0.45),
+                color: color.withOpacity(0.35),
                 size: 18,
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             value,
             maxLines: compact ? 1 : 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: compact && value.length > 16 ? 13 : 20,
+              fontSize: compact && value.length > 12 ? 16 : 32,
               fontWeight: FontWeight.w800,
-              color: AppTheme.textPrimary,
+              color: colorScheme.onSurface,
               height: 1.1,
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],

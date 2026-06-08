@@ -60,6 +60,9 @@ migrate_working_dir/
 **/ios/Runner/GeneratedPluginRegistrant.h
 **/ios/Runner/GeneratedPluginRegistrant.m
 **/ios/Runner/GeneratedPluginRegistrant.swift
+**/ios/Runner/generated_plugin_registrant.h
+**/ios/Runner/generated_plugin_registrant.m
+**/ios/Runner/generated_plugin_registrant.swift
 **/ios/Runner/noop.map
 
 # macOS-specific
@@ -69,6 +72,11 @@ migrate_working_dir/
 **/macos/Flutter/GeneratedPluginRegistrant.m
 **/macos/Flutter/GeneratedPluginRegistrant.d
 **/macos/Flutter/GeneratedPluginRegistrant.o
+**/macos/Flutter/generated_plugin_registrant.swift
+**/macos/Flutter/generated_plugin_registrant.h
+**/macos/Flutter/generated_plugin_registrant.m
+**/macos/Flutter/generated_plugin_registrant.d
+**/macos/Flutter/generated_plugin_registrant.o
 **/macos/Pods/
 **/macos/.symlinks/
 
@@ -77,12 +85,20 @@ migrate_working_dir/
 **/windows/flutter/GeneratedPluginRegistrant.h
 **/windows/flutter/GeneratedPluginRegistrant.cc
 **/windows/flutter/GeneratedPluginRegistrant.cpp
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.cpp
+**/windows/flutter/generated_plugins.cmake
 
 # Linux-specific
 **/linux/flutter/ephemeral/
 **/linux/flutter/GeneratedPluginRegistrant.h
 **/linux/flutter/GeneratedPluginRegistrant.cc
 **/linux/flutter/GeneratedPluginRegistrant.cpp
+**/linux/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.cpp
+**/linux/flutter/generated_plugins.cmake
 
 # Web-specific
 /web/flutter_bootstrap.js
@@ -92,3 +108,5 @@ app.*.symbols
 
 # Obfuscation related
 app.*.map.json
+
+

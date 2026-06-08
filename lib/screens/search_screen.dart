@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state/analyzer_provider.dart';
-import '../theme.dart';
 import '../widgets/metric_tag.dart';
+import '../widgets/theme_toggle_button.dart';
 import 'detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -38,6 +38,8 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AnalyzerProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,13 +49,13 @@ class _SearchScreenState extends State<SearchScreen> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: AppTheme.highlight,
+                color: colorScheme.primary.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: AppTheme.borderSubdued),
+                border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.science_outlined,
-                color: AppTheme.interactiveBlue,
+                color: colorScheme.primary,
                 size: 16,
               ),
             ),
@@ -61,107 +63,130 @@ class _SearchScreenState extends State<SearchScreen> {
             const Text('Research Explorer'),
           ],
         ),
+        actions: const [
+          ThemeToggleButton(),
+          SizedBox(width: 8),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: AppTheme.surface,
+            color: colorScheme.surface,
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Research Query',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          prefixIcon:
-                              const Icon(Icons.manage_search_rounded, size: 20),
-                          hintText: 'Search topics, methods, or domains...',
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.close_rounded,
-                                      color: AppTheme.textDisabled, size: 18),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {});
-                                  },
-                                )
-                              : null,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        onChanged: (val) => setState(() {}),
-                        onSubmitted: _triggerSearch,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontSize: 14,
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            prefixIcon:
+                                const Icon(Icons.manage_search_rounded, size: 20),
+                            hintText: 'Search topics, methods, or domains...',
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.close_rounded, size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {});
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (val) => setState(() {}),
+                          onSubmitted: _triggerSearch,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: () => _triggerSearch(_searchController.text),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(12),
-                        minimumSize: const Size(48, 48),
+                    Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.search_rounded,
-                        color: Colors.white,
-                        size: 20,
+                      child: ElevatedButton(
+                        onPressed: () => _triggerSearch(_searchController.text),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(12),
+                          minimumSize: const Size(48, 48),
+                        ),
+                        child: const Icon(
+                          Icons.search_rounded,
+                          size: 20,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: _suggestions.map((s) {
                     final isSelected = provider.currentQuery == s;
-                    return GestureDetector(
-                      onTap: () {
+                    return ActionChip(
+                      onPressed: () {
                         _searchController.text = s;
                         _triggerSearch(s);
                       },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppTheme.greenSoft
-                              : AppTheme.surfaceMuted,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppTheme.brandGreen
-                                : AppTheme.borderSubdued,
-                          ),
-                        ),
-                        child: Text(
-                          s,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected
-                                ? AppTheme.darkGreen
-                                : AppTheme.textSecondary,
-                          ),
-                        ),
+                      avatar: isSelected
+                          ? Icon(Icons.check_circle_rounded,
+                              size: 16,
+                              color: colorScheme.onSecondaryContainer)
+                          : Icon(Icons.search_rounded,
+                              size: 16,
+                              color: colorScheme.onSurfaceVariant),
+                      label: Text(s),
+                      labelStyle: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected
+                            ? colorScheme.onSecondaryContainer
+                            : colorScheme.onSurface,
                       ),
+                      backgroundColor: isSelected
+                          ? colorScheme.secondaryContainer
+                          : colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                      side: BorderSide(
+                        color: isSelected
+                            ? colorScheme.secondary
+                            : colorScheme.outline.withOpacity(0.2),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                     );
                   }).toList(),
                 ),
@@ -175,28 +200,11 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildBody(AnalyzerProvider provider) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (provider.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Retrieving research records...',
-              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-            ),
-          ],
-        ),
-      );
+      return _buildSkeletonList();
     }
 
     if (provider.error != null) {
@@ -206,30 +214,30 @@ class _SearchScreenState extends State<SearchScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.critical.withOpacity(0.3)),
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: colorScheme.error.withOpacity(0.3)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline_rounded,
-                    color: AppTheme.critical, size: 36),
+                Icon(Icons.error_outline_rounded,
+                    color: colorScheme.error, size: 36),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Failed to load data',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   provider.error!,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
@@ -248,32 +256,55 @@ class _SearchScreenState extends State<SearchScreen> {
 
     if (provider.works.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.library_books_outlined,
-                color: AppTheme.textDisabled, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              provider.currentQuery.isEmpty ? 'Explore Research' : 'No Results',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textPrimary,
-              ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      provider.currentQuery.isEmpty
+                          ? Icons.science_outlined
+                          : Icons.search_off_rounded,
+                      color: colorScheme.primary,
+                      size: 44,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  provider.currentQuery.isEmpty ? 'Explore Research' : 'No Results Found',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.currentQuery.isEmpty
+                      ? 'Enter a topic to discover publications, journals, citation metrics, and yearly trends.'
+                      : 'We couldn\'t find any matching publications for "${provider.currentQuery}". Try using different terms.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              provider.currentQuery.isEmpty
-                  ? 'Enter a topic to discover publications and trends.'
-                  : 'Try a different keyword.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 13,
-              ),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -288,30 +319,30 @@ class _SearchScreenState extends State<SearchScreen> {
               Expanded(
                 child: Text(
                   'Found ${provider.totalCount} publications for "${provider.currentQuery}"',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textSecondary,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
               if (provider.isBackgroundLoading) ...[
-                const SizedBox(
+                SizedBox(
                   width: 12,
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
+                        AlwaysStoppedAnimation<Color>(colorScheme.secondary),
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'Loaded ${provider.allWorks.length} papers',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: AppTheme.brandGreen,
+                    color: colorScheme.secondary,
                   ),
                 ),
               ],
@@ -326,25 +357,31 @@ class _SearchScreenState extends State<SearchScreen> {
             separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final work = provider.works[index];
-              return Material(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(8),
+              return Card(
+                elevation: 0,
+                color: colorScheme.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: colorScheme.outline.withOpacity(isDark ? 0.35 : 0.2),
+                    width: 1,
+                  ),
+                ),
                 child: InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailScreen(work: work),
+                      PageRouteBuilder(
+                        transitionDuration: const Duration(milliseconds: 280),
+                        pageBuilder: (_, _, _) => DetailScreen(work: work),
+                        transitionsBuilder: (_, anim, _, child) =>
+                            FadeTransition(opacity: anim, child: child),
                       ),
                     );
                   },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppTheme.borderSubdued),
-                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -352,10 +389,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           work.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
+                            color: colorScheme.onSurface,
                             height: 1.4,
                           ),
                         ),
@@ -368,8 +405,8 @@ class _SearchScreenState extends State<SearchScreen> {
                                     : ''),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
                               fontSize: 12,
                               height: 1.4,
                             ),
@@ -380,12 +417,12 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [
                             MetricTag(
                               text: work.publicationYear.toString(),
-                              color: AppTheme.brandGreen,
+                              color: colorScheme.secondary,
                             ),
                             const SizedBox(width: 6),
                             MetricTag(
                               text: '${work.citedByCount} citations',
-                              color: AppTheme.interactiveBlue,
+                              color: colorScheme.primary,
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -394,16 +431,16 @@ class _SearchScreenState extends State<SearchScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                  color: AppTheme.textDisabled,
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant.withOpacity(0.8),
                                   fontSize: 12,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right_rounded,
-                              color: AppTheme.textDisabled,
+                              color: colorScheme.onSurfaceVariant.withOpacity(0.8),
                               size: 20,
                             ),
                           ],
@@ -419,10 +456,10 @@ class _SearchScreenState extends State<SearchScreen> {
         if (provider.totalPages > 1)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: AppTheme.surface,
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
               border: Border(
-                top: BorderSide(color: AppTheme.borderSubdued, width: 1),
+                top: BorderSide(color: colorScheme.outline.withOpacity(0.2), width: 1),
               ),
             ),
             child: Row(
@@ -439,16 +476,16 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceMuted,
+                    color: colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppTheme.borderSubdued),
+                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
                   ),
                   child: Text(
                     'Page ${provider.currentPage} of ${provider.totalPages}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -464,6 +501,106 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildSkeletonList() {
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: 5,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final colorScheme = Theme.of(context).colorScheme;
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outline.withOpacity(isDark ? 0.35 : 0.2),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SkeletonBlock(width: double.infinity, height: 16),
+              const SizedBox(height: 8),
+              const _SkeletonBlock(width: 150, height: 12),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const _SkeletonBlock(width: 60, height: 18, borderRadius: 4),
+                  const SizedBox(width: 8),
+                  const _SkeletonBlock(width: 80, height: 18, borderRadius: 4),
+                  const Spacer(),
+                  const _SkeletonBlock(width: 100, height: 12),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SkeletonBlock extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  const _SkeletonBlock({
+    required this.width,
+    required this.height,
+    this.borderRadius = 8,
+  });
+
+  @override
+  State<_SkeletonBlock> createState() => _SkeletonBlockState();
+}
+
+class _SkeletonBlockState extends State<_SkeletonBlock>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.35, end: 0.7).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? const Color(0xFF1E2D42) : const Color(0xFFE2E8F0);
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: baseColor,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+            ),
+          ),
+        );
+      },
     );
   }
 }
