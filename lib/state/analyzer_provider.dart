@@ -112,6 +112,13 @@ class AnalyzerProvider with ChangeNotifier {
     return bestPaper;
   }
 
+  /// Publications sorted from highest to lowest citation count.
+  List<Work> get topInfluentialPapers {
+    final sortedWorks = List<Work>.from(_allWorks)
+      ..sort((a, b) => b.citedByCount.compareTo(a.citedByCount));
+    return sortedWorks;
+  }
+
   /// Publication trends by year, sorted chronologically.
   Map<int, int> get yearlyTrends {
     final Map<int, int> trends = {};
@@ -190,29 +197,30 @@ class AnalyzerProvider with ChangeNotifier {
     try {
       final int maxPagesToFetch = ((_totalCount / _perPage).ceil()).clamp(1, 20);
       
-      for (int page = 2; page <= maxPagesToFetch; page++) {
-        if (_currentQuery != query) break;
+      if (maxPagesToFetch > 1) {
+        final futures = <Future<OpenAlexResponse>>[];
+        for (int page = 2; page <= maxPagesToFetch; page++) {
+          futures.add(_service.searchWorks(query, page: page, perPage: _perPage));
+        }
 
-        final response = await _service.searchWorks(query, page: page, perPage: _perPage);
-        
-        if (_currentQuery != query) break;
+        final responses = await Future.wait(futures);
 
-        final existingIds = _allWorks.map((w) => w.id).toSet();
-        for (var work in response.works) {
-          if (!existingIds.contains(work.id)) {
-            _allWorks.add(work);
+        if (_currentQuery == query) {
+          final existingIds = _allWorks.map((w) => w.id).toSet();
+          for (var response in responses) {
+            for (var work in response.works) {
+              if (!existingIds.contains(work.id)) {
+                _allWorks.add(work);
+              }
+            }
+          }
+
+          final startIndex = (_currentPage - 1) * _perPage;
+          if (_allWorks.length > startIndex) {
+            final int endIndex = (_currentPage * _perPage).clamp(0, _allWorks.length);
+            _works = _allWorks.sublist(startIndex, endIndex);
           }
         }
-        
-        // If background loading finishes fetching the page the user currently is viewing (unlikely but possible),
-        // we can update _works.
-        final startIndex = (_currentPage - 1) * _perPage;
-        if (_currentPage == page && _allWorks.length > startIndex) {
-          final int endIndex = (page * _perPage).clamp(0, _allWorks.length);
-          _works = _allWorks.sublist(startIndex, endIndex);
-        }
-
-        notifyListeners();
       }
     } catch (e) {
       debugPrint('Background loading error: $e');
@@ -289,4 +297,3 @@ class AnalyzerProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

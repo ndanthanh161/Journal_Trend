@@ -11,10 +11,10 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
 
     // Verify that the default suggestions are visible.
-    expect(find.text('Gợi ý chủ đề phổ biến'), findsOneWidget);
+    expect(find.text('Research Query'), findsOneWidget);
     expect(find.text('Artificial Intelligence'), findsOneWidget);
 
     // Verify that the empty state instruction is visible.
-    expect(find.text('Hãy bắt đầu tìm kiếm!'), findsOneWidget);
+    expect(find.text('Explore Research'), findsOneWidget);
   });
 }

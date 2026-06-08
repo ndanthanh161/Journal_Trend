@@ -9,8 +9,8 @@ class MockOpenAlexService implements OpenAlexService {
   MockOpenAlexService(this.dummyWorks);
 
   @override
-  Future<List<Work>> searchWorks(String query, {int limit = 100}) async {
-    return dummyWorks;
+  Future<OpenAlexResponse> searchWorks(String query, {int page = 1, int perPage = 100}) async {
+    return OpenAlexResponse(works: dummyWorks, totalCount: dummyWorks.length);
   }
 }
 
@@ -82,6 +82,13 @@ void main() {
 
       // Paper 2 has 50 citations
       expect(provider.mostInfluentialPaper?.id, '2');
+
+      // Influential papers are ranked by citation count, highest first
+      expect(provider.topInfluentialPapers.map((work) => work.id), [
+        '2',
+        '3',
+        '1',
+      ]);
 
       // Yearly trends sorted ascending: {2020: 2, 2021: 1}
       expect(provider.yearlyTrends, {2020: 2, 2021: 1});

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/work_model.dart';
 import '../state/analyzer_provider.dart';
 import '../theme.dart';
+import '../widgets/metric_tag.dart';
 import 'detail_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -15,12 +17,8 @@ class DashboardScreen extends StatelessWidget {
     final hasData = provider.works.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tổng quan'),
-      ),
-      body: !hasData
-          ? _buildEmptyState(context)
-          : _buildDashboard(context, provider),
+      appBar: AppBar(title: const Text('Analytics Dashboard')),
+      body: !hasData ? _buildEmptyState(context) : _buildDashboard(provider),
     );
   }
 
@@ -31,27 +29,27 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart_rounded,
-                color: AppTheme.textDisabled, size: 48),
+            Icon(Icons.dataset_outlined, color: AppTheme.textDisabled, size: 48),
             const SizedBox(height: 16),
             const Text(
-              'Chưa có dữ liệu',
+              'No Dataset Available',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
             const Text(
-              'Tìm kiếm một chủ đề để xem phân tích.',
+              'Search for a topic to generate a research summary.',
+              textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onNavigateToSearch,
               icon: const Icon(Icons.search_rounded, size: 16),
-              label: const Text('Tìm kiếm'),
+              label: const Text('Explore'),
             ),
           ],
         ),
@@ -59,8 +57,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboard(BuildContext context, AnalyzerProvider provider) {
+  Widget _buildDashboard(AnalyzerProvider provider) {
     final influentialPaper = provider.mostInfluentialPaper;
+    final topInfluentialPapers = provider.topInfluentialPapers.take(5).toList();
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -68,93 +67,27 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Topic banner ──
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.greenSoft,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: AppTheme.brandGreen.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.topic_rounded,
-                    color: AppTheme.brandGreen, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Chủ đề đang phân tích',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        provider.currentQuery,
-                        style: const TextStyle(
-                          color: AppTheme.darkGreen,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (provider.isBackgroundLoading) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.5,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Đang thu thập dữ liệu phân tích (đã tải ${provider.allWorks.length} / ${provider.totalCount} bài)...',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.brandGreen,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _SnapshotCard(provider: provider),
           const SizedBox(height: 20),
-
-          // ── Key metrics ──
-          _SectionTitle(title: 'Chỉ số chính'),
+          const _SectionTitle(title: 'Key Performance Indicators'),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _StatCard(
-                  label: 'Tổng ấn phẩm',
+                  label: 'Publications',
                   value: provider.totalPublications.toString(),
                   icon: Icons.article_outlined,
+                  color: AppTheme.brandGreen,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _StatCard(
-                  label: 'Trích dẫn TB',
+                  label: 'Avg. citations',
                   value: provider.averageCitationCount.toStringAsFixed(1),
                   icon: Icons.format_quote_rounded,
+                  color: AppTheme.interactiveBlue,
                 ),
               ),
             ],
@@ -164,162 +97,44 @@ class DashboardScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatCard(
-                  label: 'Năm nổi bật',
+                  label: 'Peak year',
                   value: provider.mostActivePublicationYear.toString(),
                   icon: Icons.event_rounded,
+                  color: AppTheme.indigo,
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _StatCard(
-                  label: 'Tạp chí hàng đầu',
+                  label: 'Top journal',
                   value: provider.topJournal,
-                  icon: Icons.bookmark_outline_rounded,
+                  icon: Icons.menu_book_outlined,
+                  color: AppTheme.warning,
                   compact: true,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
-          // ── Top author ──
-          _SectionTitle(title: 'Tác giả nổi bật'),
+          const _SectionTitle(title: 'Most Active Researcher'),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderSubdued),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppTheme.greenSoft,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.person_rounded,
-                      color: AppTheme.brandGreen, size: 18),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Nghiên cứu tích cực nhất',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        provider.topAuthor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          _InfoCard(
+            icon: Icons.person_search_outlined,
+            label: 'Author',
+            value: provider.topAuthor,
+            color: AppTheme.interactiveBlue,
           ),
-          const SizedBox(height: 20),
-
-          // ── Most influential paper ──
           if (influentialPaper != null) ...[
-            _SectionTitle(title: 'Ấn phẩm nổi bật nhất'),
+            const SizedBox(height: 20),
+            const _SectionTitle(title: 'Most Influential Publication'),
             const SizedBox(height: 8),
-            Material(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(8),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          DetailScreen(work: influentialPaper),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppTheme.borderSubdued),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppTheme.warning.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.emoji_events_rounded,
-                                    color: AppTheme.warning.withOpacity(0.9),
-                                    size: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${influentialPaper.citedByCount} trích dẫn',
-                                  style: TextStyle(
-                                    color: AppTheme.warning
-                                        .withOpacity(0.9),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          const Icon(Icons.chevron_right_rounded,
-                              color: AppTheme.textDisabled, size: 20),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        influentialPaper.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        influentialPaper.journalName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            _InfluentialPaperCard(work: influentialPaper),
+          ],
+          if (topInfluentialPapers.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const _SectionTitle(title: 'Top Influential Papers'),
+            const SizedBox(height: 8),
+            _InfluentialPaperRankedList(works: topInfluentialPapers),
           ],
         ],
       ),
@@ -327,7 +142,312 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-// ── Reusable ──
+class _SnapshotCard extends StatelessWidget {
+  final AnalyzerProvider provider;
+
+  const _SnapshotCard({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.dashboardBlue.withOpacity(0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppTheme.blueSoft,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.analytics_outlined,
+              color: AppTheme.dashboardBlue,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Live Dataset Snapshot',
+                  style: TextStyle(
+                    color: AppTheme.dashboardBlue,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  provider.currentQuery,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${provider.allWorks.length} records loaded from ${provider.totalCount} matching publications',
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                if (provider.isBackgroundLoading) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: const LinearProgressIndicator(
+                      minHeight: 4,
+                      backgroundColor: AppTheme.surfaceMuted,
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppTheme.dashboardBlue),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _InfoCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSubdued),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfluentialPaperCard extends StatelessWidget {
+  final Work work;
+
+  const _InfluentialPaperCard({required this.work});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppTheme.surface,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DetailScreen(work: work)),
+          );
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppTheme.borderSubdued),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CountPill(
+                    label: '${work.citedByCount} citations',
+                    color: AppTheme.warning,
+                  ),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.textDisabled, size: 20),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                work.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                work.journalName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfluentialPaperRankedList extends StatelessWidget {
+  final List<Work> works;
+
+  const _InfluentialPaperRankedList({required this.works});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSubdued),
+      ),
+      child: Column(
+        children: works.asMap().entries.map((indexed) {
+          final index = indexed.key;
+          final work = indexed.value;
+          final isLast = index == works.length - 1;
+
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailScreen(work: work),
+                ),
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: index == 0
+                            ? AppTheme.warning
+                            : AppTheme.textDisabled,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          work.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            height: 1.35,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${work.publicationYear} - ${work.journalName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CountPill(
+                    label: '${work.citedByCount} citations',
+                    color: AppTheme.warning,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
 
 class _SectionTitle extends StatelessWidget {
   final String title;
@@ -339,7 +459,7 @@ class _SectionTitle extends StatelessWidget {
       title,
       style: const TextStyle(
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: AppTheme.textPrimary,
       ),
     );
@@ -350,12 +470,14 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final Color color;
   final bool compact;
 
   const _StatCard({
     required this.label,
     required this.value,
     required this.icon,
+    required this.color,
     this.compact = false,
   });
 
@@ -371,7 +493,26 @@ class _StatCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppTheme.textDisabled, size: 18),
+          Container(
+            width: 34,
+            height: 4,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(99),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 18),
+              const Spacer(),
+              Icon(
+                Icons.trending_up_rounded,
+                color: color.withOpacity(0.45),
+                size: 18,
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -379,16 +520,17 @@ class _StatCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: compact && value.length > 16 ? 13 : 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: AppTheme.textPrimary,
               height: 1.1,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             label,
             style: const TextStyle(
               fontSize: 12,
+              fontWeight: FontWeight.w500,
               color: AppTheme.textSecondary,
             ),
           ),

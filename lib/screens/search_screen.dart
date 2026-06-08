@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../state/analyzer_provider.dart';
 import '../theme.dart';
+import '../widgets/metric_tag.dart';
 import 'detail_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -43,47 +44,51 @@ class _SearchScreenState extends State<SearchScreen> {
         title: Row(
           children: [
             Container(
-              width: 26,
-              height: 26,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
-                color: AppTheme.brandGreen,
+                color: AppTheme.highlight,
                 borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: AppTheme.borderSubdued),
               ),
-              child: const Icon(Icons.auto_stories_rounded,
-                  color: Colors.white, size: 14),
+              child: const Icon(
+                Icons.science_outlined,
+                color: AppTheme.interactiveBlue,
+                size: 16,
+              ),
             ),
             const SizedBox(width: 10),
-            const Text('Journal Analyzer'),
+            const Text('Research Explorer'),
           ],
         ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Search area ──
           Container(
             color: AppTheme.surface,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search label (above field per Polaris)
                 const Text(
-                  'Từ khóa chủ đề',
+                  'Research Query',
                   style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'VD: Blockchain, Data Science...',
+                          prefixIcon:
+                              const Icon(Icons.manage_search_rounded, size: 20),
+                          hintText: 'Search topics, methods, or domains...',
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.close_rounded,
@@ -98,7 +103,9 @@ class _SearchScreenState extends State<SearchScreen> {
                         onChanged: (val) => setState(() {}),
                         onSubmitted: _triggerSearch,
                         style: const TextStyle(
-                            color: AppTheme.textPrimary, fontSize: 14),
+                          color: AppTheme.textPrimary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -108,13 +115,15 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.all(12),
                         minimumSize: const Size(48, 48),
                       ),
-                      child: const Icon(Icons.search_rounded,
-                          color: Colors.white, size: 20),
+                      child: const Icon(
+                        Icons.search_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                // ── Suggestion chips ──
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
@@ -127,27 +136,28 @@ class _SearchScreenState extends State<SearchScreen> {
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? AppTheme.greenSoft
-                              : AppTheme.pageBg,
-                          borderRadius: BorderRadius.circular(4),
+                              : AppTheme.surfaceMuted,
+                          borderRadius: BorderRadius.circular(6),
                           border: Border.all(
                             color: isSelected
                                 ? AppTheme.brandGreen
-                                : AppTheme.borderColor,
+                                : AppTheme.borderSubdued,
                           ),
                         ),
                         child: Text(
                           s,
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w400,
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                             color: isSelected
-                                ? AppTheme.brandGreen
+                                ? AppTheme.darkGreen
                                 : AppTheme.textSecondary,
                           ),
                         ),
@@ -158,7 +168,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
           ),
-          // ── Body ──
           Expanded(child: _buildBody(provider)),
         ],
       ),
@@ -182,7 +191,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Đang truy xuất dữ liệu...',
+              'Retrieving research records...',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
             ),
           ],
@@ -208,10 +217,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     color: AppTheme.critical, size: 36),
                 const SizedBox(height: 12),
                 const Text(
-                  'Không thể tải dữ liệu',
+                  'Failed to load data',
                   style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.textPrimary,
                   ),
                 ),
@@ -220,13 +229,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   provider.error!,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 13),
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: () => _triggerSearch(provider.currentQuery),
                   icon: const Icon(Icons.refresh_rounded, size: 16),
-                  label: const Text('Thử lại'),
+                  label: const Text('Retry'),
                 ),
               ],
             ),
@@ -244,28 +255,29 @@ class _SearchScreenState extends State<SearchScreen> {
                 color: AppTheme.textDisabled, size: 48),
             const SizedBox(height: 12),
             Text(
-              provider.currentQuery.isEmpty
-                  ? 'Bắt đầu tìm kiếm'
-                  : 'Không có kết quả',
+              provider.currentQuery.isEmpty ? 'Explore Research' : 'No Results',
               style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textPrimary),
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               provider.currentQuery.isEmpty
-                  ? 'Nhập từ khóa phía trên để khám phá ấn phẩm.'
-                  : 'Thử một từ khóa khác.',
-              style:
-                  const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  ? 'Enter a topic to discover publications and trends.'
+                  : 'Try a different keyword.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
       );
     }
 
-    // ── Results ──
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -275,10 +287,10 @@ class _SearchScreenState extends State<SearchScreen> {
             children: [
               Expanded(
                 child: Text(
-                  'Tìm thấy ${provider.totalCount} ấn phẩm cho "${provider.currentQuery}"',
+                  'Found ${provider.totalCount} publications for "${provider.currentQuery}"',
                   style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -289,15 +301,16 @@ class _SearchScreenState extends State<SearchScreen> {
                   height: 12,
                   child: CircularProgressIndicator(
                     strokeWidth: 1.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Đã tải ${provider.allWorks.length} bài để phân tích',
+                  'Loaded ${provider.allWorks.length} papers',
                   style: const TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                     color: AppTheme.brandGreen,
                   ),
                 ),
@@ -335,47 +348,19 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Title
                         Text(
                           work.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                             color: AppTheme.textPrimary,
                             height: 1.4,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        // Meta row
-                        Row(
-                          children: [
-                            _Tag(
-                              text: work.publicationYear.toString(),
-                              color: AppTheme.brandGreen,
-                            ),
-                            const SizedBox(width: 6),
-                            _Tag(
-                              text: '${work.citedByCount} trích dẫn',
-                              color: AppTheme.interactiveBlue,
-                            ),
-                            const Spacer(),
-                            const Icon(Icons.chevron_right_rounded,
-                                color: AppTheme.textDisabled, size: 20),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Journal
-                        Text(
-                          work.journalName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary, fontSize: 12),
-                        ),
                         if (work.authors.isNotEmpty) ...[
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 6),
                           Text(
                             work.authors.take(3).join(', ') +
                                 (work.authors.length > 3
@@ -384,9 +369,45 @@ class _SearchScreenState extends State<SearchScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                color: AppTheme.textDisabled, fontSize: 12),
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
                           ),
                         ],
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            MetricTag(
+                              text: work.publicationYear.toString(),
+                              color: AppTheme.brandGreen,
+                            ),
+                            const SizedBox(width: 6),
+                            MetricTag(
+                              text: '${work.citedByCount} citations',
+                              color: AppTheme.interactiveBlue,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                work.journalName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  color: AppTheme.textDisabled,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppTheme.textDisabled,
+                              size: 20,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -395,7 +416,6 @@ class _SearchScreenState extends State<SearchScreen> {
             },
           ),
         ),
-        // Pagination Footer
         if (provider.totalPages > 1)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -408,59 +428,37 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                OutlinedButton(
-                  onPressed: provider.currentPage > 1 ? () => provider.previousPage() : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.textPrimary,
-                    disabledForegroundColor: AppTheme.textDisabled,
-                    side: BorderSide(
-                      color: provider.currentPage > 1 ? AppTheme.borderColor : AppTheme.borderSubdued,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    minimumSize: const Size(80, 36),
+                _PageButton(
+                  label: 'Prev',
+                  icon: Icons.chevron_left_rounded,
+                  onPressed: provider.currentPage > 1
+                      ? () => provider.previousPage()
+                      : null,
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceMuted,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppTheme.borderSubdued),
                   ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.chevron_left_rounded, size: 18),
-                      SizedBox(width: 4),
-                      Text('Trước', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                    ],
+                  child: Text(
+                    'Page ${provider.currentPage} of ${provider.totalPages}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                 ),
-                Text(
-                  'Trang ${provider.currentPage} / ${provider.totalPages}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                OutlinedButton(
-                  onPressed: provider.currentPage < provider.totalPages ? () => provider.nextPage() : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.textPrimary,
-                    disabledForegroundColor: AppTheme.textDisabled,
-                    side: BorderSide(
-                      color: provider.currentPage < provider.totalPages ? AppTheme.borderColor : AppTheme.borderSubdued,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    minimumSize: const Size(80, 36),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Sau', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
-                      SizedBox(width: 4),
-                      Icon(Icons.chevron_right_rounded, size: 18),
-                    ],
-                  ),
+                _PageButton(
+                  label: 'Next',
+                  icon: Icons.chevron_right_rounded,
+                  trailingIcon: true,
+                  onPressed: provider.currentPage < provider.totalPages
+                      ? () => provider.nextPage()
+                      : null,
                 ),
               ],
             ),
@@ -470,27 +468,39 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _Tag extends StatelessWidget {
-  final String text;
-  final Color color;
+class _PageButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool trailingIcon;
+  final VoidCallback? onPressed;
 
-  const _Tag({required this.text, required this.color});
+  const _PageButton({
+    required this.label,
+    required this.icon,
+    this.trailingIcon = false,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(4),
+    final children = [
+      Icon(icon, size: 18),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+    ];
+
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        minimumSize: const Size(80, 36),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: trailingIcon ? children.reversed.toList() : children,
       ),
     );
   }

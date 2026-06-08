@@ -17,19 +17,27 @@ class OpenAlexService {
   static const String _mailto = 'student.journalanalyzer@fpt.edu.vn';
 
   final http.Client _client;
+  final Map<String, OpenAlexResponse> _cache = {};
 
   OpenAlexService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Searches OpenAlex for works related to the provided [query].
   /// Returns an [OpenAlexResponse] object.
   Future<OpenAlexResponse> searchWorks(String query, {int page = 1, int perPage = 100}) async {
-    if (query.trim().isEmpty) return OpenAlexResponse(works: [], totalCount: 0);
+    final cleanQuery = query.trim();
+    if (cleanQuery.isEmpty) return OpenAlexResponse(works: [], totalCount: 0);
+
+    final cacheKey = '${cleanQuery.toLowerCase()}_${page}_$perPage';
+    if (_cache.containsKey(cacheKey)) {
+      return _cache[cacheKey]!;
+    }
 
     final queryParameters = {
-      'search': query,
+      'search': cleanQuery,
       'page': page.toString(),
       'per_page': perPage.toString(),
       'mailto': _mailto,
+      'select': 'id,title,publication_year,cited_by_count,doi,primary_location,authorships,abstract_inverted_index',
     };
 
     final uri = Uri.https(_baseUrl, _path, queryParameters);
@@ -49,7 +57,9 @@ class OpenAlexService {
             .map((workJson) => Work.fromJson(workJson as Map<String, dynamic>))
             .toList();
 
-        return OpenAlexResponse(works: works, totalCount: totalCount);
+        final openAlexResponse = OpenAlexResponse(works: works, totalCount: totalCount);
+        _cache[cacheKey] = openAlexResponse;
+        return openAlexResponse;
       } else {
         throw Exception(
             'Failed to load publication data (HTTP ${response.statusCode})');

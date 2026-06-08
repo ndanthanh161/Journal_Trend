@@ -15,9 +15,7 @@ class TrendScreen extends StatelessWidget {
     final hasData = provider.works.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Xu hướng'),
-      ),
+      appBar: AppBar(title: const Text('Data Analytics')),
       body: !hasData
           ? _buildEmptyState(context)
           : _buildTrends(context, provider),
@@ -35,7 +33,7 @@ class TrendScreen extends StatelessWidget {
                 color: AppTheme.textDisabled, size: 48),
             const SizedBox(height: 16),
             const Text(
-              'Chưa có dữ liệu xu hướng',
+              'No Analytics Available',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -44,7 +42,7 @@ class TrendScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Tìm kiếm một chủ đề để xem biểu đồ phân tích.',
+              'Search for a topic to view publication trends.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
@@ -52,7 +50,7 @@ class TrendScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onNavigateToSearch,
               icon: const Icon(Icons.search_rounded, size: 16),
-              label: const Text('Tìm kiếm'),
+              label: const Text('Explore'),
             ),
           ],
         ),
@@ -83,13 +81,14 @@ class TrendScreen extends StatelessWidget {
                     height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppTheme.brandGreen),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Đang cập nhật xu hướng (đã tải ${provider.allWorks.length} / ${provider.totalCount} bài)...',
+                      'Updating trends (loaded ${provider.allWorks.length} / ${provider.totalCount} papers)...',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.brandGreen,
@@ -101,31 +100,42 @@ class TrendScreen extends StatelessWidget {
               ),
             ),
           ],
-          _SectionTitle(title: 'Xuất bản theo năm'),
+          _AnalyticsKpiRow(provider: provider),
+          const SizedBox(height: 24),
+          _SectionTitle(
+            title: 'Publication Output Over Time',
+            subtitle: 'Annual volume of matching research records',
+          ),
           const SizedBox(height: 8),
           _buildChart(provider),
           const SizedBox(height: 24),
 
-          _SectionTitle(title: 'Tạp chí hàng đầu'),
+          _SectionTitle(
+            title: 'Top Journals',
+            subtitle: 'Publication count by source title',
+          ),
           const SizedBox(height: 8),
           _buildRankingCard(
             entries: provider.topJournals
                 .where((e) => e.key != 'Unknown Source')
                 .take(5)
                 .toList(),
-            emptyMessage: 'Không đủ dữ liệu tạp chí.',
+            emptyMessage: 'Insufficient journal data.',
             barColor: AppTheme.brandGreen,
           ),
           const SizedBox(height: 24),
 
-          _SectionTitle(title: 'Tác giả nổi bật'),
+          _SectionTitle(
+            title: 'Featured Authors',
+            subtitle: 'Most frequent authors in the loaded dataset',
+          ),
           const SizedBox(height: 8),
           _buildRankingCard(
             entries: provider.topAuthors
                 .where((e) => e.key != 'Unknown Author')
                 .take(5)
                 .toList(),
-            emptyMessage: 'Không đủ dữ liệu tác giả.',
+            emptyMessage: 'Insufficient author data.',
             barColor: AppTheme.interactiveBlue,
           ),
           const SizedBox(height: 16),
@@ -162,7 +172,7 @@ class TrendScreen extends StatelessWidget {
     final double yInterval = (maxCount / 4).clamp(1.0, 100.0);
 
     return Container(
-      height: 200,
+      height: 220,
       width: double.infinity,
       padding: const EdgeInsets.only(right: 20, left: 6, top: 16, bottom: 6),
       decoration: BoxDecoration(
@@ -234,8 +244,8 @@ class TrendScreen extends StatelessWidget {
               spots: spots,
               isCurved: true,
               curveSmoothness: 0.3,
-              color: AppTheme.brandGreen,
-              barWidth: 2.5,
+              color: AppTheme.interactiveBlue,
+              barWidth: 2.8,
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: spots.length <= 15,
@@ -243,7 +253,7 @@ class TrendScreen extends StatelessWidget {
                     FlDotCirclePainter(
                   radius: 3,
                   color: AppTheme.surface,
-                  strokeColor: AppTheme.brandGreen,
+                  strokeColor: AppTheme.interactiveBlue,
                   strokeWidth: 2,
                 ),
               ),
@@ -251,8 +261,8 @@ class TrendScreen extends StatelessWidget {
                 show: true,
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.brandGreen.withOpacity(0.12),
-                    AppTheme.brandGreen.withOpacity(0.0),
+                    AppTheme.interactiveBlue.withOpacity(0.12),
+                    AppTheme.interactiveBlue.withOpacity(0.0),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -314,9 +324,8 @@ class TrendScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: index == 0
-                              ? barColor
-                              : AppTheme.textDisabled,
+                          color:
+                              index == 0 ? barColor : AppTheme.textDisabled,
                         ),
                       ),
                     ),
@@ -335,7 +344,7 @@ class TrendScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${entry.value} bài',
+                      '${entry.value} papers',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -349,7 +358,7 @@ class TrendScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: AppTheme.pageBg,
+                    backgroundColor: AppTheme.surfaceMuted,
                     valueColor: AlwaysStoppedAnimation<Color>(barColor),
                     minHeight: 4,
                   ),
@@ -363,19 +372,137 @@ class TrendScreen extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
+class _AnalyticsKpiRow extends StatelessWidget {
+  final AnalyzerProvider provider;
+
+  const _AnalyticsKpiRow({required this.provider});
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: AppTheme.textPrimary,
+    final years = provider.yearlyTrends.keys.toList();
+    final yearRange = years.isEmpty
+        ? 'N/A'
+        : years.length == 1
+            ? years.first.toString()
+            : '${years.first}-${years.last}';
+
+    return Row(
+      children: [
+        Expanded(
+          child: _AnalyticsKpiCard(
+            label: 'Records',
+            value: provider.allWorks.length.toString(),
+            color: AppTheme.dashboardBlue,
+            icon: Icons.dataset_outlined,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _AnalyticsKpiCard(
+            label: 'Year span',
+            value: yearRange,
+            color: AppTheme.indigo,
+            icon: Icons.timeline_rounded,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _AnalyticsKpiCard(
+            label: 'Sources',
+            value: provider.topJournals.length.toString(),
+            color: AppTheme.brandGreen,
+            icon: Icons.menu_book_outlined,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AnalyticsKpiCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+
+  const _AnalyticsKpiCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 86,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSubdued),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const Spacer(),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _SectionTitle({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppTheme.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }

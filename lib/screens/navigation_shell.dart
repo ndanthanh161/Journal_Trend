@@ -59,20 +59,20 @@ class _NavigationShellState extends State<NavigationShell> {
               children: [
                 _NavTab(
                   icon: Icons.search_rounded,
-                  label: 'Tìm kiếm',
+                  label: 'Explore',
                   isActive: _currentIndex == 0,
                   onTap: () => setState(() => _currentIndex = 0),
                 ),
                 _NavTab(
-                  icon: Icons.space_dashboard_outlined,
-                  label: 'Tổng quan',
+                  icon: Icons.dataset_outlined,
+                  label: 'Summary',
                   isActive: _currentIndex == 1,
                   showDot: hasResults && _currentIndex != 1,
                   onTap: () => setState(() => _currentIndex = 1),
                 ),
                 _NavTab(
-                  icon: Icons.insights_rounded,
-                  label: 'Xu hướng',
+                  icon: Icons.query_stats_rounded,
+                  label: 'Analytics',
                   isActive: _currentIndex == 2,
                   showDot: hasResults && _currentIndex != 2,
                   onTap: () => setState(() => _currentIndex = 2),
@@ -103,13 +103,13 @@ class _NavTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? AppTheme.brandGreen : AppTheme.textDisabled;
+    final color = isActive ? AppTheme.dashboardBlue : AppTheme.textDisabled;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -125,7 +125,7 @@ class _NavTab extends StatelessWidget {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: AppTheme.brandGreen,
+                        color: AppTheme.dashboardBlue,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -137,7 +137,7 @@ class _NavTab extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                 color: color,
               ),
             ),

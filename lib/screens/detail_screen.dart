@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/work_model.dart';
 import '../theme.dart';
+import '../widgets/metric_tag.dart';
 
 class DetailScreen extends StatelessWidget {
   final Work work;
@@ -11,16 +12,22 @@ class DetailScreen extends StatelessWidget {
   Future<void> _openDoi(BuildContext context, String doiUrl) async {
     final Uri url = Uri.parse(doiUrl);
     try {
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Could not launch $doiUrl';
+      final openedExternal = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!openedExternal) {
+        final openedInApp = await launchUrl(url);
+        if (!openedInApp) {
+          throw 'No browser app could open $doiUrl';
+        }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Không thể mở liên kết: $e'),
+            content: Text('Could not open link: $e'),
             backgroundColor: AppTheme.critical,
           ),
         );
@@ -32,7 +39,7 @@ class DetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chi tiết ấn phẩm'),
+        title: const Text('Publication Record'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -44,91 +51,14 @@ class DetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header card ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.borderSubdued),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tags
-                  Row(
-                    children: [
-                      _Tag(
-                        text: work.publicationYear.toString(),
-                        color: AppTheme.brandGreen,
-                      ),
-                      const SizedBox(width: 6),
-                      _Tag(
-                        text: '${work.citedByCount} trích dẫn',
-                        color: AppTheme.interactiveBlue,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  // Title
-                  Text(
-                    work.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textPrimary,
-                      height: 1.35,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  const Divider(),
-                  const SizedBox(height: 10),
-                  // Journal
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.bookmark_outlined,
-                          color: AppTheme.textDisabled, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Tạp chí',
-                              style: TextStyle(
-                                color: AppTheme.textDisabled,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 1),
-                            Text(
-                              work.journalName,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            _HeaderCard(work: work),
             const SizedBox(height: 20),
-
-            // ── Authors ──
             if (work.authors.isNotEmpty) ...[
               Text(
-                'Tác giả (${work.authors.length})',
+                'Authors (${work.authors.length})',
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -138,11 +68,13 @@ class DetailScreen extends StatelessWidget {
                 runSpacing: 6,
                 children: work.authors.map((author) {
                   return Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: AppTheme.pageBg,
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppTheme.surfaceMuted,
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(color: AppTheme.borderSubdued),
                     ),
                     child: Text(
@@ -157,13 +89,11 @@ class DetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
             ],
-
-            // ── Abstract ──
             const Text(
-              'Tóm tắt (Abstract)',
+              'Abstract',
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: AppTheme.textPrimary,
               ),
             ),
@@ -176,38 +106,25 @@ class DetailScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppTheme.borderSubdued),
               ),
-              child: Container(
-                padding: const EdgeInsets.only(left: 12),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      color: AppTheme.brandGreen,
-                      width: 3,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  work.abstractText,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: AppTheme.textSecondary,
-                    height: 1.65,
-                    fontStyle: work.abstractText.startsWith('No abstract')
-                        ? FontStyle.italic
-                        : FontStyle.normal,
-                  ),
+              child: Text(
+                work.abstractText,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppTheme.textSecondary,
+                  height: 1.7,
+                  fontStyle: work.abstractText.startsWith('No abstract')
+                      ? FontStyle.italic
+                      : FontStyle.normal,
                 ),
               ),
             ),
             const SizedBox(height: 20),
-
-            // ── DOI ──
             if (work.doi != null && work.doi!.isNotEmpty) ...[
               const Text(
-                'Liên kết',
+                'Persistent Identifier',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textPrimary,
                 ),
               ),
@@ -226,7 +143,7 @@ class DetailScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.link_rounded,
+                        const Icon(Icons.open_in_new_rounded,
                             color: AppTheme.interactiveBlue, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
@@ -247,13 +164,12 @@ class DetailScreen extends StatelessWidget {
                                 style: const TextStyle(
                                   color: AppTheme.interactiveBlue,
                                   fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.open_in_new_rounded,
-                            color: AppTheme.interactiveBlue, size: 16),
                       ],
                     ),
                   ),
@@ -268,27 +184,86 @@ class DetailScreen extends StatelessWidget {
   }
 }
 
-class _Tag extends StatelessWidget {
-  final String text;
-  final Color color;
+class _HeaderCard extends StatelessWidget {
+  final Work work;
 
-  const _Tag({required this.text, required this.color});
+  const _HeaderCard({required this.work});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(4),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderSubdued),
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              MetricTag(
+                text: work.publicationYear.toString(),
+                color: AppTheme.brandGreen,
+              ),
+              const SizedBox(width: 6),
+              MetricTag(
+                text: '${work.citedByCount} citations',
+                color: AppTheme.interactiveBlue,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            work.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
+              height: 1.35,
+              letterSpacing: 0,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Divider(),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.menu_book_outlined,
+                color: AppTheme.textDisabled,
+                size: 17,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Source',
+                      style: TextStyle(
+                        color: AppTheme.textDisabled,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      work.journalName,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
