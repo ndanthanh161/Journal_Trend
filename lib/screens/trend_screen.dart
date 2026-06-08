@@ -205,7 +205,8 @@ class TrendScreen extends StatelessWidget {
       maxYear = maxYear + 2;
     }
 
-    final double xInterval = ((maxYear - minYear) / 4).clamp(1.0, 10.0);
+    double xInterval = ((maxYear - minYear) / 4).ceilToDouble();
+    if (xInterval < 1.0) xInterval = 1.0;
     final double yInterval = (maxCount / 4).clamp(1.0, 100.0);
 
     return Container(
