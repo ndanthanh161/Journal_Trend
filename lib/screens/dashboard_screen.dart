@@ -75,8 +75,6 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _SnapshotCard(provider: provider),
-          const SizedBox(height: 20),
           const _SectionTitle(title: 'Key Performance Indicators'),
           const SizedBox(height: 12),
           Row(
@@ -144,115 +142,6 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _InfluentialPaperRankedList(works: topInfluentialPapers),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SnapshotCard extends StatelessWidget {
-  final AnalyzerProvider provider;
-
-  const _SnapshotCard({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [
-                  colorScheme.surface,
-                  colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                ]
-              : [
-                  colorScheme.surface,
-                  colorScheme.primary.withOpacity(0.04),
-                ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.primary.withOpacity(isDark ? 0.35 : 0.2),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(isDark ? 0.12 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.analytics_outlined,
-              color: colorScheme.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Live Dataset Snapshot',
-                  style: TextStyle(
-                    color: colorScheme.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  provider.currentQuery,
-                  style: TextStyle(
-                    color: colorScheme.onSurface,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${provider.allWorks.length} records loaded from ${provider.totalCount} matching publications',
-                  style: TextStyle(
-                    color: colorScheme.onSurfaceVariant,
-                    fontSize: 12,
-                  ),
-                ),
-                if (provider.isBackgroundLoading) ...[
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      minHeight: 4,
-                      backgroundColor: colorScheme.surfaceContainerHighest,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
         ],
       ),
     );

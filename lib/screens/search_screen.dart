@@ -150,45 +150,54 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _suggestions.map((s) {
-                    final isSelected = provider.currentQuery == s;
-                    return ActionChip(
-                      onPressed: () {
-                        _searchController.text = s;
-                        _triggerSearch(s);
-                      },
-                      avatar: isSelected
-                          ? Icon(Icons.check_circle_rounded,
-                              size: 16,
-                              color: colorScheme.onSecondaryContainer)
-                          : Icon(Icons.search_rounded,
-                              size: 16,
-                              color: colorScheme.onSurfaceVariant),
-                      label: Text(s),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected
-                            ? colorScheme.onSecondaryContainer
-                            : colorScheme.onSurface,
-                      ),
-                      backgroundColor: isSelected
-                          ? colorScheme.secondaryContainer
-                          : colorScheme.surfaceContainerHighest.withOpacity(0.4),
-                      side: BorderSide(
-                        color: isSelected
-                            ? colorScheme.secondary
-                            : colorScheme.outline.withOpacity(0.2),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                    );
-                  }).toList(),
+                SizedBox(
+                  height: 36,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: _suggestions.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final suggestion = _suggestions[index];
+                      final isSelected = provider.currentQuery == suggestion;
+
+                      return ActionChip(
+                        onPressed: () {
+                          _searchController.text = suggestion;
+                          _triggerSearch(suggestion);
+                        },
+                        avatar: isSelected
+                            ? Icon(Icons.check_circle_rounded,
+                                size: 16,
+                                color: colorScheme.onSecondaryContainer)
+                            : Icon(Icons.search_rounded,
+                                size: 16,
+                                color: colorScheme.onSurfaceVariant),
+                        label: Text(suggestion),
+                        labelStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w500,
+                          color: isSelected
+                              ? colorScheme.onSecondaryContainer
+                              : colorScheme.onSurface,
+                        ),
+                        backgroundColor: isSelected
+                            ? colorScheme.secondaryContainer
+                            : colorScheme.surfaceContainerHighest.withOpacity(0.4),
+                        side: BorderSide(
+                          color: isSelected
+                              ? colorScheme.secondary
+                              : colorScheme.outline.withOpacity(0.2),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -312,46 +321,15 @@ class _SearchScreenState extends State<SearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Found ${provider.totalCount} publications for "${provider.currentQuery}"',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              if (provider.isBackgroundLoading) ...[
-                SizedBox(
-                  width: 12,
-                  height: 12,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(colorScheme.secondary),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'Loaded ${provider.allWorks.length} papers',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.secondary,
-                  ),
-                ),
-              ],
-            ],
+        if (provider.isBackgroundLoading)
+          LinearProgressIndicator(
+            minHeight: 2,
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.secondary),
           ),
-        ),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             physics: const BouncingScrollPhysics(),
             itemCount: provider.works.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
